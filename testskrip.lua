@@ -1,27 +1,17 @@
--- Anime Fruits Helper v3.1  (Android-safe)
--- Speedwalk + AutoAttack + AutoSkill tanpa mouse1press/keypress
-local player   = game.Players.LocalPlayer
-local uis      = game:GetService("UserInputService")
-local rs       = game:GetService("RunService")
-local rep      = game:GetService("ReplicatedStorage")
+-- Anime Fruits Helper v4.0
+-- Speedwalk + Add Coin/Diamond (Android, Delta Executor)
+local player = game:GetService("Players").LocalPlayer
+local mouse  = player:GetMouse()
+local uis    = game:GetService("UserInputService")
+local rs     = game:GetService("RunService")
+local rep    = game:GetService("ReplicatedStorage")
 
 ------------------------------------------------
--- IDENTIFIKASI REMOTE GAME (ganti nama sesuai game)
--- Contoh umum di Anime Fruit Simulator:
-local atkRemote = rep:FindFirstChild("Attack") or rep:FindFirstChild("Combat") or nil
-local skRemote  = rep:FindFirstChild("UseSkill") or rep:FindFirstChild("SkillEvent") or nil
-
--- Jika belum ketemu, cari sendiri:
--- for _,v in pairs(rep:GetDescendants()) do
---     if v:IsA("RemoteEvent") and v.Name:lower():find("skill") then print(v) end
--- end
-
-------------------------------------------------
--- //// GUI (sama, dipersingkat) ////
+-- GUI utama
 local sg  = Instance.new("ScreenGui", game.CoreGui)
 local main= Instance.new("Frame", sg)
-main.Size     = UDim2.new(0, 280, 0, 260)
-main.Position = UDim2.new(0.5, -140, 0.5, -130)
+main.Size     = UDim2.new(0, 300, 0, 320)
+main.Position = UDim2.new(0.5, -150, 0.5, -160)
 main.BackgroundColor3 = Color3.fromRGB(25,25,25)
 main.BorderSizePixel  = 0
 main.Active = true; main.Draggable = true
@@ -40,53 +30,62 @@ minBtn.BackgroundColor3 = Color3.fromRGB(255,100,100)
 
 -- speed label
 local spdLbl = Instance.new("TextLabel", main)
-spdLbl.Position = UDim2.new(0.5,-100,0.15,0)
+spdLbl.Position = UDim2.new(0.5,-100,0.10,0)
 spdLbl.Size     = UDim2.new(0,200,0,20); spdLbl.BackgroundTransparency=1
 spdLbl.Text="Speed: 50"; spdLbl.TextColor3=Color3.new(1,1,1); spdLbl.Font=Enum.Font.SourceSans
 
 -- track slider
 local track = Instance.new("Frame", main)
-track.Position = UDim2.new(0.5,-100,0.25,0); track.Size = UDim2.new(0,200,0,10)
+track.Position = UDim2.new(0.5,-100,0.18,0); track.Size = UDim2.new(0,200,0,10)
 track.BackgroundColor3 = Color3.fromRGB(70,70,70)
 local thumb = Instance.new("Frame", track)
 thumb.Size = UDim2.new(0,12,0,18); thumb.Position=UDim2.new(0,-6,0,-4)
 thumb.BackgroundColor3 = Color3.fromRGB(0,170,255); thumb.BorderSizePixel=0
+-- overlay button (drag area)
 local dragBtn = Instance.new("TextButton", track)
 dragBtn.BackgroundTransparency=1; dragBtn.Size = UDim2.new(1,0,1,0); dragBtn.Text=""
 
 -- toggle speed
 local speedTgl = Instance.new("TextButton", main)
-speedTgl.Position = UDim2.new(0.5,-40,0.35,0); speedTgl.Size=UDim2.new(0,80,0,30)
-speedTgl.BackgroundColor3=Color3.fromRGB(0,170,0); speedTgl.Text="ON"; speedTgl.Font=Enum.Font.SourceSansBold
+speedTgl.Position = UDim2.new(0.5,-40,0.26,0); speedTgl.Size=UDim2.new(0,80,0,30)
+speedTgl.BackgroundColor3=Color3.fromRGB(0,170,0); speedTgl.Text="ON"
+speedTgl.Font=Enum.Font.SourceSansBold
 
--- auto-attack toggle
-local atkLbl = Instance.new("TextLabel", main)
-atkLbl.Position = UDim2.new(0.05,0,0.50,0); atkLbl.Size=UDim2.new(0,100,0,20)
-atkLbl.BackgroundTransparency=1; atkLbl.Text="Auto Attack"; atkLbl.TextColor3=Color3.new(1,1,1)
-local atkTgl = Instance.new("TextButton", main)
-atkTgl.Position = UDim2.new(0.05,0,0.55,0); atkTgl.Size=UDim2.new(0,80,0,25)
-atkTgl.BackgroundColor3=Color3.fromRGB(170,0,0); atkTgl.Text="OFF"
+-- Input Coin
+local coinLbl = Instance.new("TextLabel", main)
+coinLbl.Position = UDim2.new(0.05,0,0.38,0); coinLbl.Size=UDim2.new(0,80,0,20)
+coinLbl.BackgroundTransparency=1; coinLbl.Text="Add Coin"; coinLbl.TextColor3=Color3.new(1,1,1)
+local coinBox = Instance.new("TextBox", main)
+coinBox.Position = UDim2.new(0.05,0,0.43,0); coinBox.Size=UDim2.new(0,80,0,25)
+coinBox.ClearTextOnFocus=false; coinBox.Text="0"; coinBox.Font=Enum.Font.SourceSans
+coinBox.BackgroundColor3 = Color3.fromRGB(70,70,70); coinBox.TextColor3=Color3.new(1,1,1)
+local coinBtn = Instance.new("TextButton", main)
+coinBtn.Position = UDim2.new(0.05,0,0.49,0); coinBtn.Size=UDim2.new(0,80,0,25)
+coinBtn.BackgroundColor3=Color3.fromRGB(0,170,0); coinBtn.Text="Add"; coinBtn.Font=Enum.Font.SourceSansBold
 
--- auto-skill toggle
-local skLbl = Instance.new("TextLabel", main)
-skLbl.Position = UDim2.new(0.55,0,0.50,0); skLbl.Size=UDim2.new(0,100,0,20)
-skLbl.BackgroundTransparency=1; skLbl.Text="Auto Skill"; skLbl.TextColor3=Color3.new(1,1,1)
-local skTgl = Instance.new("TextButton", main)
-skTgl.Position = UDim2.new(0.55,0,0.55,0); skTgl.Size=UDim2.new(0,80,0,25)
-skTgl.BackgroundColor3=Color3.fromRGB(170,0,0); skTgl.Text="OFF"
+-- Input Diamond
+local dmdLbl = Instance.new("TextLabel", main)
+dmdLbl.Position = UDim2.new(0.55,0,0.38,0); dmdLbl.Size=UDim2.new(0,80,0,20)
+dmdLbl.BackgroundTransparency=1; dmdLbl.Text="Add Diamond"; dmdLbl.TextColor3=Color3.new(1,1,1)
+local dmdBox = Instance.new("TextBox", main)
+dmdBox.Position = UDim2.new(0.55,0,0.43,0); dmdBox.Size=UDim2.new(0,80,0,25)
+dmdBox.ClearTextOnFocus=false; dmdBox.Text="0"; dmdBox.Font=Enum.Font.SourceSans
+dmdBox.BackgroundColor3 = Color3.fromRGB(70,70,70); dmdBox.TextColor3=Color3.new(1,1,1)
+local dmdBtn = Instance.new("TextButton", main)
+dmdBtn.Position = UDim2.new(0.55,0,0.49,0); dmdBtn.Size=UDim2.new(0,80,0,25)
+dmdBtn.BackgroundColor3=Color3.fromRGB(0,170,255); dmdBtn.Text="Add"; dmdBtn.Font=Enum.Font.SourceSansBold
 
 ------------------------------------------------
 -- variabel
 local minVal, maxVal = 16, 100
 local speedVal = 50
 local speedOn  = false
-local atkOn    = false
-local skOn     = false
-local bv; local atkConn; local skConn; local dragSlider = false
+local bv; local dragSlider = false
 
 ------------------------------------------------
--- slider drag (sudah aman di Android)
+-- slider drag (Android-friendly)
 dragBtn.MouseButton1Down:Connect(function() dragSlider = true end)
+dragBtn.TouchPan:Connect(function() dragSlider = true end)
 uis.InputEnded:Connect(function(inp)
     if inp.UserInputType == Enum.UserInputType.Touch or inp.UserInputType == Enum.UserInputType.MouseButton1 then
         dragSlider = false
@@ -127,74 +126,41 @@ speedTgl.MouseButton1Click:Connect(function()
 end)
 
 ------------------------------------------------
--- AUTO-ATTACK (pakai RemoteEvent bila ada)
--- kalau tidak ada, kita pakai tap virtual minimal
-function doAttack()
-    -- strategi Android: panggil remote langsung (tidak pakai mouse/key)
-    if atkRemote then
-        atkRemote:FireServer()
+-- TAMBAH COIN
+coinBtn.MouseButton1Click:Connect(function()
+    local jml = tonumber(coinBox.Text) or 0
+    -- coba lewat remote
+    local coinRemote = rep:FindFirstChild("AddCoin") or rep:FindFirstChild("CoinEvent") or nil
+    if coinRemote then
+        coinRemote:FireServer(jml)          -- server-side
     else
-        -- fallback: tap tengah layar 1 frame (executornya Delta)
-        -- Delta Android: inputManager.tap(x,y)
-        local center = Vector2.new(workspace.CurrentCamera.ViewportSize.X/2,
-                                  workspace.CurrentCamera.ViewportSize.Y/2)
-        -- khusus Delta Android API
-        if inputManager then inputManager.tap(center.X, center.Y) end
+        -- fallback: client-only (visual saja)
+        local leader = player:FindFirstChild("leaderstats")
+        if leader then
+            local coin = leader:FindFirstChild("Coin") or leader:FindFirstChild("Coins") or leader:FindFirstChild("Gold")
+            if coin then coin.Value = coin.Value + jml end
+        end
     end
-end
-function toggleAtk()
-    if atkOn then
-        atkConn = rs.Heartbeat:Connect(function()
-            if not atkOn then return end
-            doAttack()
-        end)
-    else
-        if atkConn then atkConn:Disconnect(); atkConn=nil end
-    end
-end
-atkTgl.MouseButton1Click:Connect(function()
-    atkOn = not atkOn
-    atkTgl.Text = atkOn and "ON" or "OFF"
-    atkTgl.BackgroundColor3 = atkOn and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
-    toggleAtk()
+    coinBox.Text = "0"
+    print("✅ Coin +" .. jml)
 end)
 
 ------------------------------------------------
--- AUTO-SKILL (loop skill 1→2→3→4)
--- ganti nama remote sesuai game
-local skillRemote = {}
-for i=1,4 do
-    skillRemote[i] = rep:FindFirstChild("Skill"..i) or rep:FindFirstChild("UseSkill"..i) or nil
-end
-function doSkill(idx)
-    if skillRemote[idx] then
-        skillRemote[idx]:FireServer()
+-- TAMBAH DIAMOND
+dmdBtn.MouseButton1Click:Connect(function()
+    local jml = tonumber(dmdBox.Text) or 0
+    local dmdRemote = rep:FindFirstChild("AddDiamond") or rep:FindFirstChild("DiamondEvent") or nil
+    if dmdRemote then
+        dmdRemote:FireServer(jml)
     else
-        -- fallback: virtual key tap (Delta Android)
-        local keyCode = 0x30 + idx  -- 1=0x31 .. 4=0x34
-        if inputManager then
-            inputManager.keyPress(keyCode); inputManager.keyRelease(keyCode)
+        local leader = player:FindFirstChild("leaderstats")
+        if leader then
+            local dmd = leader:FindFirstChild("Diamond") or leader:FindFirstChild("Diamonds") or leader:FindFirstChild("Gem")
+            if dmd then dmd.Value = dmd.Value + jml end
         end
     end
-end
-function toggleSkill()
-    if skOn then
-        local idx = 0
-        skConn = rs.Heartbeat:Connect(function()
-            if not skOn then return end
-            idx = idx % 4 + 1
-            doSkill(idx)
-            wait(0.4)  -- interval antar skill
-        end)
-    else
-        if skConn then skConn:Disconnect(); skConn=nil end
-    end
-end
-skTgl.MouseButton1Click:Connect(function()
-    skOn = not skOn
-    skTgl.Text = skOn and "ON" or "OFF"
-    skTgl.BackgroundColor3 = skOn and Color3.fromRGB(0,170,0) or Color3.fromRGB(170,0,0)
-    toggleSkill()
+    dmdBox.Text = "0"
+    print("✅ Diamond +" .. jml)
 end)
 
 ------------------------------------------------
@@ -202,11 +168,10 @@ end)
 local isMin = false
 minBtn.MouseButton1Click:Connect(function()
     isMin = not isMin
-    track.Visible = not isMin; spdLbl.Visible = not isMin
-    speedTgl.Visible = not isMin; atkLbl.Visible = not isMin
-    atkTgl.Visible = not isMin; skLbl.Visible = not isMin
-    skTgl.Visible = not isMin
-    main.Size = isMin and UDim2.new(0,280,0,25) or UDim2.new(0,280,0,260)
+    track.Visible = not isMin; spdLbl.Visible = not isMin; speedTgl.Visible = not isMin
+    coinLbl.Visible = not isMin; coinBox.Visible = not isMin; coinBtn.Visible = not isMin
+    dmdLbl.Visible = not isMin; dmdBox.Visible = not isMin; dmdBtn.Visible = not isMin
+    main.Size = isMin and UDim2.new(0,300,0,25) or UDim2.new(0,300,0,320)
     minBtn.Text = isMin and "+" or "-"
 end)
 
@@ -218,4 +183,4 @@ player.CharacterAdded:Connect(function()
 end)
 
 ------------------------------------------------
-print("✅ Helper v3.1 Android ready – no mouse1press/keypress used.")
+print("✅ Helper v4.0 Android ready – Speedwalk + Add Coin/Diamond")

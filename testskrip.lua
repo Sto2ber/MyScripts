@@ -20,7 +20,7 @@ top.Size = UDim2.new(1,0,0,25)
 top.BackgroundColor3 = Color3.fromRGB(50,50,50)
 local ttl = Instance.new("TextLabel", top)
 ttl.Size = UDim2.new(1,-30,1,0); ttl.BackgroundTransparency=1
-ttl.Text = "⚡ Anime Fruits Helper v3.0"; ttl.Font=Enum.Font.SourceSansBold
+ttl.Text = "⚡ Anime Fruits by OASIS"; ttl.Font=Enum.Font.SourceSansBold
 ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize=16
 local minBtn = Instance.new("TextButton", top)
 minBtn.Size=UDim2.new(0,25,1,0); minBtn.Position=UDim2.new(1,-25,0,0)

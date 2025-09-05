@@ -1,11 +1,23 @@
--- Anime Fruits Speedwalk + Auto-Attack + Auto-Skill GUI v3.0
--- Delta-Executor | BodyVelocity bypass
+-- Anime Fruits Helper v3.1  (Android-safe)
+-- Speedwalk + AutoAttack + AutoSkill tanpa mouse1press/keypress
 local player   = game.Players.LocalPlayer
-local mouse    = player:GetMouse()
 local uis      = game:GetService("UserInputService")
 local rs       = game:GetService("RunService")
+local rep      = game:GetService("ReplicatedStorage")
 
--- //// GUI ////////////////////////////////////
+------------------------------------------------
+-- IDENTIFIKASI REMOTE GAME (ganti nama sesuai game)
+-- Contoh umum di Anime Fruit Simulator:
+local atkRemote = rep:FindFirstChild("Attack") or rep:FindFirstChild("Combat") or nil
+local skRemote  = rep:FindFirstChild("UseSkill") or rep:FindFirstChild("SkillEvent") or nil
+
+-- Jika belum ketemu, cari sendiri:
+-- for _,v in pairs(rep:GetDescendants()) do
+--     if v:IsA("RemoteEvent") and v.Name:lower():find("skill") then print(v) end
+-- end
+
+------------------------------------------------
+-- //// GUI (sama, dipersingkat) ////
 local sg  = Instance.new("ScreenGui", game.CoreGui)
 local main= Instance.new("Frame", sg)
 main.Size     = UDim2.new(0, 280, 0, 260)
@@ -16,11 +28,10 @@ main.Active = true; main.Draggable = true
 
 -- top bar
 local top = Instance.new("Frame", main)
-top.Size = UDim2.new(1,0,0,25)
-top.BackgroundColor3 = Color3.fromRGB(50,50,50)
+top.Size = UDim2.new(1,0,0,25); top.BackgroundColor3 = Color3.fromRGB(50,50,50)
 local ttl = Instance.new("TextLabel", top)
 ttl.Size = UDim2.new(1,-30,1,0); ttl.BackgroundTransparency=1
-ttl.Text = "⚡ Anime Fruits by OASIS"; ttl.Font=Enum.Font.SourceSansBold
+ttl.Text = "⚡ Anime Fruits by.Oasis"; ttl.Font=Enum.Font.SourceSansBold
 ttl.TextColor3 = Color3.new(1,1,1); ttl.TextSize=16
 local minBtn = Instance.new("TextButton", top)
 minBtn.Size=UDim2.new(0,25,1,0); minBtn.Position=UDim2.new(1,-25,0,0)
@@ -30,29 +41,23 @@ minBtn.BackgroundColor3 = Color3.fromRGB(255,100,100)
 -- speed label
 local spdLbl = Instance.new("TextLabel", main)
 spdLbl.Position = UDim2.new(0.5,-100,0.15,0)
-spdLbl.Size     = UDim2.new(0,200,0,20)
-spdLbl.BackgroundTransparency=1
+spdLbl.Size     = UDim2.new(0,200,0,20); spdLbl.BackgroundTransparency=1
 spdLbl.Text="Speed: 50"; spdLbl.TextColor3=Color3.new(1,1,1); spdLbl.Font=Enum.Font.SourceSans
 
 -- track slider
 local track = Instance.new("Frame", main)
-track.Position = UDim2.new(0.5,-100,0.25,0)
-track.Size     = UDim2.new(0,200,0,10)
+track.Position = UDim2.new(0.5,-100,0.25,0); track.Size = UDim2.new(0,200,0,10)
 track.BackgroundColor3 = Color3.fromRGB(70,70,70)
 local thumb = Instance.new("Frame", track)
 thumb.Size = UDim2.new(0,12,0,18); thumb.Position=UDim2.new(0,-6,0,-4)
 thumb.BackgroundColor3 = Color3.fromRGB(0,170,255); thumb.BorderSizePixel=0
--- overlay button (drag area)
 local dragBtn = Instance.new("TextButton", track)
-dragBtn.BackgroundTransparency=1
-dragBtn.Size = UDim2.new(1,0,1,0); dragBtn.Text=""
+dragBtn.BackgroundTransparency=1; dragBtn.Size = UDim2.new(1,0,1,0); dragBtn.Text=""
 
 -- toggle speed
 local speedTgl = Instance.new("TextButton", main)
-speedTgl.Position = UDim2.new(0.5,-40,0.35,0)
-speedTgl.Size     = UDim2.new(0,80,0,30)
-speedTgl.BackgroundColor3=Color3.fromRGB(0,170,0); speedTgl.Text="ON"
-speedTgl.Font=Enum.Font.SourceSansBold
+speedTgl.Position = UDim2.new(0.5,-40,0.35,0); speedTgl.Size=UDim2.new(0,80,0,30)
+speedTgl.BackgroundColor3=Color3.fromRGB(0,170,0); speedTgl.Text="ON"; speedTgl.Font=Enum.Font.SourceSansBold
 
 -- auto-attack toggle
 local atkLbl = Instance.new("TextLabel", main)
@@ -71,19 +76,21 @@ skTgl.Position = UDim2.new(0.55,0,0.55,0); skTgl.Size=UDim2.new(0,80,0,25)
 skTgl.BackgroundColor3=Color3.fromRGB(170,0,0); skTgl.Text="OFF"
 
 ------------------------------------------------
--- logic variabel
+-- variabel
 local minVal, maxVal = 16, 100
 local speedVal = 50
 local speedOn  = false
 local atkOn    = false
 local skOn     = false
-local bv; local atkConn; local skConn
+local bv; local atkConn; local skConn; local dragSlider = false
 
 ------------------------------------------------
--- slider drag
+-- slider drag (sudah aman di Android)
 dragBtn.MouseButton1Down:Connect(function() dragSlider = true end)
 uis.InputEnded:Connect(function(inp)
-    if inp.UserInputType == Enum.UserInputType.MouseButton1 then dragSlider = false end
+    if inp.UserInputType == Enum.UserInputType.Touch or inp.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragSlider = false
+    end
 end)
 
 rs.Heartbeat:Connect(function()
@@ -98,7 +105,7 @@ rs.Heartbeat:Connect(function()
 end)
 
 ------------------------------------------------
--- fungsi BodyVelocity
+-- BodyVelocity speedwalk
 function setSpeed(val)
     local char = player.Character or player.CharacterAdded:Wait()
     local root = char:WaitForChild("HumanoidRootPart")
@@ -112,9 +119,6 @@ function setSpeed(val)
         if bv then bv:Destroy(); bv=nil end
     end
 end
-
-------------------------------------------------
--- toggle speed
 speedTgl.MouseButton1Click:Connect(function()
     speedOn = not speedOn
     speedTgl.Text = speedOn and "OFF" or "ON"
@@ -123,17 +127,26 @@ speedTgl.MouseButton1Click:Connect(function()
 end)
 
 ------------------------------------------------
--- auto-attack (klik kiri berulang)
+-- AUTO-ATTACK (pakai RemoteEvent bila ada)
+-- kalau tidak ada, kita pakai tap virtual minimal
+function doAttack()
+    -- strategi Android: panggil remote langsung (tidak pakai mouse/key)
+    if atkRemote then
+        atkRemote:FireServer()
+    else
+        -- fallback: tap tengah layar 1 frame (executornya Delta)
+        -- Delta Android: inputManager.tap(x,y)
+        local center = Vector2.new(workspace.CurrentCamera.ViewportSize.X/2,
+                                  workspace.CurrentCamera.ViewportSize.Y/2)
+        -- khusus Delta Android API
+        if inputManager then inputManager.tap(center.X, center.Y) end
+    end
+end
 function toggleAtk()
     if atkOn then
         atkConn = rs.Heartbeat:Connect(function()
             if not atkOn then return end
-            -- simulasikan mouse1 pada HumanoidRootPart (bisa disesuaikan)
-            local char = player.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                -- ini contoh pakai virtual input; kalau game pakai RemoteEvent ganti ke remote
-                mouse1press(); mouse1release()
-            end
+            doAttack()
         end)
     else
         if atkConn then atkConn:Disconnect(); atkConn=nil end
@@ -147,19 +160,31 @@ atkTgl.MouseButton1Click:Connect(function()
 end)
 
 ------------------------------------------------
--- auto-skill (tekan 1-2-3-4 berurutan)
+-- AUTO-SKILL (loop skill 1→2→3→4)
+-- ganti nama remote sesuai game
+local skillRemote = {}
+for i=1,4 do
+    skillRemote[i] = rep:FindFirstChild("Skill"..i) or rep:FindFirstChild("UseSkill"..i) or nil
+end
+function doSkill(idx)
+    if skillRemote[idx] then
+        skillRemote[idx]:FireServer()
+    else
+        -- fallback: virtual key tap (Delta Android)
+        local keyCode = 0x30 + idx  -- 1=0x31 .. 4=0x34
+        if inputManager then
+            inputManager.keyPress(keyCode); inputManager.keyRelease(keyCode)
+        end
+    end
+end
 function toggleSkill()
     if skOn then
         local idx = 0
         skConn = rs.Heartbeat:Connect(function()
             if not skOn then return end
             idx = idx % 4 + 1
-            -- contoh: tekan 1,2,3,4
-            -- kalau game pakai RemoteEvent, ganti ke fireserver(remote)
-            local key = tostring(idx)
-            -- virtual press
-            keypress(0x30 + idx); keyrelease(0x30 + idx)
-            wait(0.4) -- interval antar skill
+            doSkill(idx)
+            wait(0.4)  -- interval antar skill
         end)
     else
         if skConn then skConn:Disconnect(); skConn=nil end
@@ -193,4 +218,4 @@ player.CharacterAdded:Connect(function()
 end)
 
 ------------------------------------------------
-print("✅ Helper v3.0 aktif – drag thumb untuk speed, toggle attack/skill sesuka kamu!")
+print("✅ Helper v3.1 Android ready – no mouse1press/keypress used.")

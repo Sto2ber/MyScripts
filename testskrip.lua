@@ -1,131 +1,141 @@
--- Anime Fruits Speedwalk GUI v2.0
--- Bypass menggunakan BodyVelocity (anti-cheat safe)
--- Optimized for Delta Executor
+-- Anime Fruits Speedwalk GUI v2.1
+-- Bypass BodyVelocity + slider buatan sendiri
+-- Delta-Executor ready
 
--- [[ ANTI-CHEAT BYPASS ]]
 local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local rootPart = character:WaitForChild("HumanoidRootPart")
+local mouse = player:GetMouse()
+local rs = game:GetService("RunService")
 
--- [[ GUI CREATION ]]
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game.CoreGui
-ScreenGui.Name = "SpeedwalkGUI"
+-- GUI utama
+local sg = Instance.new("ScreenGui", game.CoreGui)
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0, 260, 0, 170)
+main.Position = UDim2.new(0.5, -130, 0.5, -85)
+main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 150)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -75)
-MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
+-- TopBar
+local top = Instance.new("Frame", main)
+top.Size = UDim2.new(1, 0, 0, 25)
+top.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 
-local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 25)
-TopBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-TopBar.BorderSizePixel = 0
-TopBar.Parent = MainFrame
+local title = Instance.new("TextLabel", top)
+title.Size = UDim2.new(1, -30, 1, 0)
+title.BackgroundTransparency = 1
+title.Text = "⚡ Speedwalk by OASIS"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 16
 
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 1, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "⚡ Speedwalk v2.0"
-Title.TextColor3 = Color3.new(1, 1, 1)
-Title.Font = Enum.Font.SourceSansBold
-Title.TextSize = 16
-Title.Parent = TopBar
+local minBtn = Instance.new("TextButton", top)
+minBtn.Size = UDim2.new(0, 25, 1, 0)
+minBtn.Position = UDim2.new(1, -25, 0, 0)
+minBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+minBtn.Text = "-"
+minBtn.Font = Enum.Font.SourceSansBold
+minBtn.TextSize = 18
 
-local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 25, 1, 0)
-MinimizeBtn.Position = UDim2.new(1, -25, 0, 0)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-MinimizeBtn.Text = "-"
-MinimizeBtn.TextColor3 = Color3.new(1, 1, 1)
-MinimizeBtn.Font = Enum.Font.SourceSansBold
-MinimizeBtn.TextSize = 18
-MinimizeBtn.Parent = TopBar
+-- Label kecepatan
+local speedLbl = Instance.new("TextLabel", main)
+speedLbl.Size = UDim2.new(0, 200, 0, 20)
+speedLbl.Position = UDim2.new(0.5, -100, 0.25, 0)
+speedLbl.BackgroundTransparency = 1
+speedLbl.Text = "Speed: 50"
+speedLbl.TextColor3 = Color3.new(1, 1, 1)
+speedLbl.Font = Enum.Font.SourceSans
+speedLbl.TextSize = 14
 
-local SpeedSlider = Instance.new("Slider")
-SpeedSlider.Size = UDim2.new(0, 200, 0, 20)
-SpeedSlider.Position = UDim2.new(0.5, -100, 0.4, 0)
-SpeedSlider.MinValue = 16
-SpeedSlider.MaxValue = 100
-SpeedSlider.Value = 50
-SpeedSlider.Parent = MainFrame
+-- Area slider (track)
+local track = Instance.new("Frame", main)
+track.Size = UDim2.new(0, 200, 0, 10)
+track.Position = UDim2.new(0.5, -100, 0.4, 0)
+track.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+track.BorderSizePixel = 0
 
-local SpeedLabel = Instance.new("TextLabel")
-SpeedLabel.Size = UDim2.new(0, 200, 0, 20)
-SpeedLabel.Position = UDim2.new(0.5, -100, 0.25, 0)
-SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.Text = "Speed: 50"
-SpeedLabel.TextColor3 = Color3.new(1, 1, 1)
-SpeedLabel.Font = Enum.Font.SourceSans
-SpeedLabel.TextSize = 14
-SpeedLabel.Parent = MainFrame
+-- Thumb (dragable)
+local thumb = Instance.new("Frame", track)
+thumb.Size = UDim2.new(0, 12, 0, 18)
+thumb.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+thumb.BorderSizePixel = 0
 
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Size = UDim2.new(0, 80, 0, 30)
-ToggleBtn.Position = UDim2.new(0.5, -40, 0.6, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-ToggleBtn.Text = "ON"
-ToggleBtn.TextColor3 = Color3.new(1, 1, 1)
-ToggleBtn.Font = Enum.Font.SourceSansBold
-ToggleBtn.TextSize = 16
-ToggleBtn.Parent = MainFrame
+-- Toggle ON/OFF
+local tgl = Instance.new("TextButton", main)
+tgl.Size = UDim2.new(0, 80, 0, 30)
+tgl.Position = UDim2.new(0.5, -40, 0.6, 0)
+tgl.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+tgl.Text = "ON"
+tgl.Font = Enum.Font.SourceSansBold
+tgl.TextSize = 16
 
--- [[ SPEED CONTROL ]]
-local bodyVel = nil
-local isActive = false
-local currentSpeed = 50
+------------------------------------------------
+-- logika slider
+local minVal, maxVal = 16, 100
+local currentVal = 50
+local dragging = false
 
--- [[ FUNCTIONS ]]
-local function updateSpeed()
-    if isActive and rootPart then
-        if not bodyVel or not bodyVel.Parent then
-            bodyVel = Instance.new("BodyVelocity")
-            bodyVel.MaxForce = Vector3.new(100000, 0, 100000)
-            bodyVel.Parent = rootPart
-        end
-        bodyVel.Velocity = rootPart.CFrame.LookVector * currentSpeed
-    elseif bodyVel then
-        bodyVel:Destroy()
-        bodyVel = nil
-    end
+local function updateThumb()
+    local ratio = (currentVal - minVal) / (maxVal - minVal)
+    thumb.Position = UDim2.new(ratio, -6, 0, -4)
+    speedLbl.Text = "Speed: " .. math.floor(currentVal)
 end
+updateThumb()
 
-ToggleBtn.MouseButton1Click:Connect(function()
-    isActive = not isActive
-    ToggleBtn.Text = isActive and "OFF" or "ON"
-    ToggleBtn.BackgroundColor3 = isActive and Color3.fromRGB(170, 0, 0) or Color3.fromRGB(0, 170, 0)
-    updateSpeed()
-end)
-
-SpeedSlider.Changed:Connect(function()
-    currentSpeed = SpeedSlider.Value
-    SpeedLabel.Text = "Speed: " .. currentSpeed
-    updateSpeed()
-end)
-
--- [[ MINIMIZE FUNCTION ]]
-local isMinimized = false
-MinimizeBtn.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    SpeedSlider.Visible = not isMinimized
-    SpeedLabel.Visible = not isMinimized
-    ToggleBtn.Visible = not isMinimized
-    MainFrame.Size = isMinimized and UDim2.new(0, 250, 0, 25) or UDim2.new(0, 250, 0, 150)
-    MinimizeBtn.Text = isMinimized and "+" or "-"
-end)
-
--- [[ CHARACTER RESET HANDLER ]]
-player.CharacterAdded:Connect(function(char)
-    character = char
-    rootPart = character:WaitForChild("HumanoidRootPart")
-    if isActive then
-        wait(0.5)
-        updateSpeed()
+track.InputBegan:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
     end
 end)
+rs.Heartbeat:Connect(function()
+    if dragging then
+        local rel = mouse.X - track.AbsolutePosition.X
+        local ratio = math.clamp(rel / track.AbsoluteSize.X, 0, 1)
+        currentVal = minVal + ratio * (maxVal - minVal)
+        updateThumb()
+    end
+end)
+mouse.Button1Up:Connect(function() dragging = false end)
 
-print("✅ Speedwalk GUI aktif! Gunakan slider untuk atur kecepatan.")
+------------------------------------------------
+-- BodyVelocity speedwalk
+local bv
+local active = false
+local function setSpeed(spd)
+    local char = player.Character or player.CharacterAdded:Wait()
+    local root = char:WaitForChild("HumanoidRootPart")
+    if active then
+        if not bv or not bv.Parent then
+            bv = Instance.new("BodyVelocity", root)
+            bv.MaxForce = Vector3.new(100000, 0, 100000)
+        end
+        bv.Velocity = root.CFrame.LookVector * spd
+    elseif bv then bv:Destroy(); bv = nil end
+end
+tgl.MouseButton1Click:Connect(function()
+    active = not active
+    tgl.Text = active and "OFF" or "ON"
+    tgl.BackgroundColor3 = active and Color3.fromRGB(170, 0, 0) or Color3.fromRGB(0, 170, 0)
+    setSpeed(currentVal)
+end)
+
+------------------------------------------------
+-- minimize
+local min = false
+minBtn.MouseButton1Click:Connect(function()
+    min = not min
+    track.Visible = not min
+    speedLbl.Visible = not min
+    tgl.Visible = not min
+    main.Size = min and UDim2.new(0, 260, 0, 25) or UDim2.new(0, 260, 0, 170)
+    minBtn.Text = min and "+" or "-"
+end)
+
+------------------------------------------------
+-- handler respawn
+player.CharacterAdded:Connect(function(ch)
+    wait(0.4)
+    if active then setSpeed(currentVal) end
+end)
+
+print("✅ Speedwalk GUI v2.1 siap! Drag thumb untuk atur kecepatan.")
